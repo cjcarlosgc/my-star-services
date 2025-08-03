@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model clientes {
+  id                              Int            @id @default(autoincrement())
+  dni                             String         @unique @db.VarChar(8)
+  name                            String?        @db.VarChar(200)
+  lastname                        String?        @db.VarChar(200)
+  sex                             String?        @db.VarChar(1)
+  age                             Int?
+  birthdate                       DateTime?      @db.Date
+  nationalityid                   Int?
+  active                          Boolean?       @default(true)
+  createdon                       DateTime?      @default(now()) @db.Timestamp(6)
+  createdby                       Int?
+  updatedon                       DateTime?      @db.Timestamp(6)
+  updatedby                       Int?
+  users_clientes_createdbyTousers users?         @relation("clientes_createdbyTousers", fields: [createdby], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_clientes_createdby")
+  nationalities                   nationalities? @relation(fields: [nationalityid], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_clientes_nationality")
+  users_clientes_updatedbyTousers users?         @relation("clientes_updatedbyTousers", fields: [updatedby], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_clientes_updatedby")
+}
+
+model nationalities {
+  id                                   Int        @id @default(autoincrement())
+  description                          String?    @db.VarChar(200)
+  active                               Boolean?   @default(true)
+  createdon                            DateTime?  @default(now()) @db.Timestamp(6)
+  createdby                            Int?
+  updatedon                            DateTime?  @db.Timestamp(6)
+  updatedby                            Int?
+  clientes                             clientes[]
+  users_nationalities_createdbyTousers users?     @relation("nationalities_createdbyTousers", fields: [createdby], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_nationalities_createdby")
+  users_nationalities_updatedbyTousers users?     @relation("nationalities_updatedbyTousers", fields: [updatedby], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_nationalities_updatedby")
+}
+
+model roles {
+  id                           Int       @id @default(autoincrement())
+  description                  String?   @db.VarChar(50)
+  active                       Boolean?  @default(true)
+  createdon                    DateTime? @default(now()) @db.Timestamp(6)
+  createdby                    Int?
+  updatedon                    DateTime? @db.Timestamp(6)
+  updatedby                    Int?
+  users_roles_createdbyTousers users?    @relation("roles_createdbyTousers", fields: [createdby], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_roles_createdby")
+  users_roles_updatedbyTousers users?    @relation("roles_updatedbyTousers", fields: [updatedby], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_roles_updatedby")
+  users_users_roleidToroles    users[]   @relation("users_roleidToroles")
+}
+
+model users {
+  id                                           Int             @id @default(autoincrement())
+  username                                     String          @unique @db.VarChar(50)
+  password                                     String?
+  passwordhash                                 String
+  email                                        String          @unique @db.VarChar(100)
+  roleid                                       Int?
+  name                                         String?         @db.VarChar(200)
+  lastname                                     String?         @db.VarChar(200)
+  active                                       Boolean?        @default(true)
+  createdon                                    DateTime?       @default(now()) @db.Timestamp(6)
+  createdby                                    Int?
+  updatedon                                    DateTime?       @db.Timestamp(6)
+  updatedby                                    Int?
+  clientes_clientes_createdbyTousers           clientes[]      @relation("clientes_createdbyTousers")
+  clientes_clientes_updatedbyTousers           clientes[]      @relation("clientes_updatedbyTousers")
+  nationalities_nationalities_createdbyTousers nationalities[] @relation("nationalities_createdbyTousers")
+  nationalities_nationalities_updatedbyTousers nationalities[] @relation("nationalities_updatedbyTousers")
+  roles_roles_createdbyTousers                 roles[]         @relation("roles_createdbyTousers")
+  roles_roles_updatedbyTousers                 roles[]         @relation("roles_updatedbyTousers")
+  users_users_createdbyTousers                 users?          @relation("users_createdbyTousers", fields: [createdby], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_createdby")
+  other_users_users_createdbyTousers           users[]         @relation("users_createdbyTousers")
+  roles_users_roleidToroles                    roles?          @relation("users_roleidToroles", fields: [roleid], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_role")
+  users_users_updatedbyTousers                 users?          @relation("users_updatedbyTousers", fields: [updatedby], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_updatedby")
+  other_users_users_updatedbyTousers           users[]         @relation("users_updatedbyTousers")
+}
