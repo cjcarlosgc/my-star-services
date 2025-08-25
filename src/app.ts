@@ -1,12 +1,18 @@
 import express from 'express';
 import { Express } from 'express';
-import { logger } from './middlewares/logger';
-import { PrismaClient } from '../src/generated/prisma';
+import { loggerMiddleware } from './middlewares/logger';
+import { errorMiddleware } from './middlewares/error';
+import { authMiddleware } from './middlewares/auth';
+import routes from './routes';
+import { PrismaClient } from '@prisma/client';
 
 const prisma: PrismaClient = new PrismaClient();
 
 const app: Express = express();
-app.use(logger);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(loggerMiddleware);
+app.use(errorMiddleware);
 
 app.get('/', (request, response) => {
     response.send('Hola mundo, esta es mi API');
@@ -45,8 +51,16 @@ app.get('/dummy-with', (request, response) => { // porque no se puede usar la pr
 });
 
 app.get('/users', async (request, response) => {
-    const users = await prisma.users.findMany();
+    const users = await prisma.user.findMany();
     response.json(users);
 });
+
+app.get('/protected-users', authMiddleware, async(request, response) => {
+    const users = await prisma.user.findMany();
+
+    response.json(users);
+});
+
+app.use('/api', routes);
 
 export default app;

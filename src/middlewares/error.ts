@@ -1,4 +1,4 @@
-export const error = (error, request, response, next) => {
+export const errorMiddleware = (error, request, response, next) => {
     const { statusCode, message } = error;
     const time: string = new Date().toISOString();
 
